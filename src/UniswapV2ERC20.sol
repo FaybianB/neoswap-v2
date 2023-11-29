@@ -89,7 +89,9 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
      * @param r ECDSA signature parameter r.
      * @param s ECDSA signature parameter s.
      */
-    function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
+    function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s)
+        external
+    {
         require(deadline >= block.timestamp, "UniswapV2: EXPIRED");
 
         bytes32 digest = keccak256(

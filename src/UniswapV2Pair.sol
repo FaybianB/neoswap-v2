@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import { IUniswapV2Pair } from "./interfaces/IUniswapV2Pair.sol";
 import { UniswapV2ERC20 } from "./UniswapV2ERC20.sol";
 import { UD60x18, ud60x18 } from "@prb/math/UD60x18.sol";
-import { Math } from "./libraries/Math.sol";
+import { Math } from "../src/libraries/Math.sol";
 import { IUniswapV2Factory } from "./interfaces/IUniswapV2Factory.sol";
 import { UD60x18, ud60x18 } from "@prb/math/UD60x18.sol";
 import { SafeERC20, IERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -68,12 +68,10 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, IERC3156FlashLender {
      * @param amount The amount of tokens lent.
      * @param data A data parameter to be passed on to the `receiver` for any custom use.
      */
-    function flashLoan(
-        IERC3156FlashBorrower receiver,
-        address token,
-        uint256 amount,
-        bytes calldata data
-    ) external returns (bool) {
+    function flashLoan(IERC3156FlashBorrower receiver, address token, uint256 amount, bytes calldata data)
+        external
+        returns (bool)
+    {
         require(supportedTokens[token], "FlashLender: Unsupported currency");
 
         uint256 flashFee_ = _flashFee(amount);
@@ -94,7 +92,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, IERC3156FlashLender {
         // Update the balances
         uint256 balance0 = IERC20(token0).balanceOf(address(this));
         uint256 balance1 = IERC20(token1).balanceOf(address(this));
-        (uint112 _reserve0, uint112 _reserve1, ) = getReserves();
+        (uint112 _reserve0, uint112 _reserve1,) = getReserves();
 
         // Update the reserves
         _update(balance0, balance1, _reserve0, _reserve1);
@@ -146,7 +144,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, IERC3156FlashLender {
      */
     function mint(address to) external lock returns (uint256 liquidity) {
         // Get the current reserves of the pair
-        (uint112 _reserve0, uint112 _reserve1, ) = getReserves();
+        (uint112 _reserve0, uint112 _reserve1,) = getReserves();
         // Get the current balances of the pair
         uint256 balance0 = IERC20(token0).balanceOf(address(this));
         uint256 balance1 = IERC20(token1).balanceOf(address(this));
@@ -191,7 +189,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, IERC3156FlashLender {
      */
     function burn(address to) external lock returns (uint256 amount0, uint256 amount1) {
         // Get the current reserves of the pair
-        (uint112 _reserve0, uint112 _reserve1, ) = getReserves();
+        (uint112 _reserve0, uint112 _reserve1,) = getReserves();
         // Get the addresses of the tokens
         address _token0 = token0;
         address _token1 = token1;
@@ -242,7 +240,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, IERC3156FlashLender {
         require(amount0Out > 0 || amount1Out > 0, "UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT");
 
         // Get the current reserves of the pair
-        (uint112 _reserve0, uint112 _reserve1, ) = getReserves();
+        (uint112 _reserve0, uint112 _reserve1,) = getReserves();
 
         // Ensure that there is enough liquidity for the swap
         require(amount0Out < _reserve0 && amount1Out < _reserve1, "UniswapV2: INSUFFICIENT_LIQUIDITY");
@@ -286,10 +284,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, IERC3156FlashLender {
             uint256 balance1Adjusted = (balance1 * 1000) - (amount1In * 3);
 
             // Ensure that the invariant holds
-            require(
-                balance0Adjusted * balance1Adjusted >= uint256(_reserve0) * _reserve1 * (1000 ** 2),
-                "UniswapV2: K"
-            );
+            require(balance0Adjusted * balance1Adjusted >= uint256(_reserve0) * _reserve1 * (1000 ** 2), "UniswapV2: K");
         }
 
         // Update the reserves
@@ -364,18 +359,12 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, IERC3156FlashLender {
             // Update the cumulative prices
             // * never overflows, and + overflow is desired
             unchecked {
-                price0CumulativeLast +=
-                    ud60x18(_reserve1)
-                        .mul(ud60x18(112e18).exp2())
-                        .div(ud60x18(_reserve0).mul(ud60x18(1e36)))
-                        .intoUint256() *
-                    timeElapsed;
-                price1CumulativeLast +=
-                    ud60x18(_reserve0)
-                        .mul(ud60x18(112e18).exp2())
-                        .div(ud60x18(_reserve1).mul(ud60x18(1e36)))
-                        .intoUint256() *
-                    timeElapsed;
+                price0CumulativeLast += ud60x18(_reserve1).mul(ud60x18(112e18).exp2()).div(
+                    ud60x18(_reserve0).mul(ud60x18(1e36))
+                ).intoUint256() * timeElapsed;
+                price1CumulativeLast += ud60x18(_reserve0).mul(ud60x18(112e18).exp2()).div(
+                    ud60x18(_reserve1).mul(ud60x18(1e36))
+                ).intoUint256() * timeElapsed;
             }
         }
 

@@ -3,13 +3,13 @@ pragma solidity 0.8.20;
 
 import { Test } from "forge-std/Test.sol";
 import { console } from "forge-std/console.sol";
-import { ERC20 } from "../src/contracts/test/ERC20.sol";
-import { UniswapV2Pair } from "../src/contracts/UniswapV2Pair.sol";
-import { UniswapV2Factory } from "../src/contracts/UniswapV2Factory.sol";
+import { ERC20 } from "../src/test/ERC20.sol";
+import { UniswapV2Pair } from "../src/UniswapV2Pair.sol";
+import { UniswapV2Factory } from "../src/UniswapV2Factory.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
-import { Math as UniswapMath } from "../src/contracts/libraries/Math.sol";
+import { Math as UniswapMath } from "../src/libraries/Math.sol";
 import { UD60x18, ud60x18 } from "@prb/math/UD60x18.sol";
-import { FlashBorrower } from "../src/contracts/helpers/FlashBorrower.sol";
+import { FlashBorrower } from "../src/helpers/FlashBorrower.sol";
 import { IERC3156FlashLender } from "@openzeppelin/contracts/interfaces/IERC3156FlashLender.sol";
 import { IERC3156FlashBorrower } from "@openzeppelin/contracts/interfaces/IERC3156FlashBorrower.sol";
 
@@ -31,14 +31,14 @@ contract UniswapV2PairTest is Test {
     uint256 private constant TOTAL_SUPPLY = UINT256_MAX_TOKENS * 10 ** 18;
 
     event Transfer(address indexed from, address indexed to, uint256 value);
-    event Mint(address indexed sender, uint amount0, uint amount1);
-    event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
+    event Mint(address indexed sender, uint256 amount0, uint256 amount1);
+    event Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed to);
     event Swap(
         address indexed sender,
-        uint amount0In,
-        uint amount1In,
-        uint amount0Out,
-        uint amount1Out,
+        uint256 amount0In,
+        uint256 amount1In,
+        uint256 amount0Out,
+        uint256 amount1Out,
         address indexed to
     );
     event Sync(uint112 reserve0, uint112 reserve1);
@@ -78,7 +78,7 @@ contract UniswapV2PairTest is Test {
 
         uint256 token0Amount = token0Count * 10 ** 18;
         uint256 token1Amount = token1Count * 10 ** 18;
-        uint256 expectedLiquidity = Math.sqrt(token0Amount * token1Amount) - _uniswapV2Pair.MINIMUM_LIQUIDITY();
+        uint256 expectedLiquidity = UniswapMath.sqrt(token0Amount * token1Amount) - _uniswapV2Pair.MINIMUM_LIQUIDITY();
         uint256 initialPoolBalanceToken0 = ERC20(_token0).balanceOf(address(_pair));
         uint256 initialPoolBalanceToken1 = ERC20(_token1).balanceOf(address(_pair));
         uint256 initialDeployerBalanceToken0 = ERC20(_token0).balanceOf(address(this));
@@ -91,7 +91,7 @@ contract UniswapV2PairTest is Test {
         uint256 poolBalanceToken1 = ERC20(_token1).balanceOf(address(_pair));
         uint256 deployerBalanceToken0 = ERC20(_token0).balanceOf(address(this));
         uint256 deployerBalanceToken1 = ERC20(_token1).balanceOf(address(this));
-        (uint112 _reserve0, uint112 _reserve1, ) = _uniswapV2Pair.getReserves();
+        (uint112 _reserve0, uint112 _reserve1,) = _uniswapV2Pair.getReserves();
 
         assertEq(initialPoolBalanceToken0 + token0Amount, poolBalanceToken0);
         assertEq(initialPoolBalanceToken1 + token1Amount, poolBalanceToken1);
@@ -184,9 +184,9 @@ contract UniswapV2PairTest is Test {
     }
 
     function testSwap() public {
-        (, , uint256 expectedOutputAmount, uint256 swapAmount) = _addLiquidityForSwap();
+        (,, uint256 expectedOutputAmount, uint256 swapAmount) = _addLiquidityForSwap();
 
-        (uint112 _reserve0, uint112 _reserve1, ) = _uniswapV2Pair.getReserves();
+        (uint112 _reserve0, uint112 _reserve1,) = _uniswapV2Pair.getReserves();
 
         vm.expectEmit(true, true, true, true, address(_token1));
 
@@ -224,7 +224,7 @@ contract UniswapV2PairTest is Test {
     }
 
     function testRevertSwapInvalidTo() public {
-        (, , uint256 expectedOutputAmount, ) = _addLiquidityForSwap();
+        (,, uint256 expectedOutputAmount,) = _addLiquidityForSwap();
 
         vm.expectRevert("UniswapV2: INVALID_TO");
 
@@ -334,7 +334,9 @@ contract UniswapV2PairTest is Test {
         assertEq(token1Amount, maxAmount1);
     }
 
-    function testRevertMaxFlashLoanUnsupportedLoan(uint256 token0Count, uint256 token1Count, address unsupportedToken) public {
+    function testRevertMaxFlashLoanUnsupportedLoan(uint256 token0Count, uint256 token1Count, address unsupportedToken)
+        public
+    {
         vm.assume(unsupportedToken != _token0);
         vm.assume(unsupportedToken != _token1);
         vm.assume(token0Count > 0);
@@ -374,7 +376,7 @@ contract UniswapV2PairTest is Test {
 
         uint256 poolBalanceToken0 = ERC20(_token0).balanceOf(address(_pair));
         uint256 poolBalanceToken1 = ERC20(_token1).balanceOf(address(_pair));
-        (uint112 _reserve0, uint112 _reserve1, ) = _uniswapV2Pair.getReserves();
+        (uint112 _reserve0, uint112 _reserve1,) = _uniswapV2Pair.getReserves();
 
         vm.expectEmit(true, true, true, true, address(_token0));
 
@@ -406,7 +408,7 @@ contract UniswapV2PairTest is Test {
 
         uint256 poolBalanceToken0 = ERC20(_token0).balanceOf(address(_pair));
         uint256 poolBalanceToken1 = ERC20(_token1).balanceOf(address(_pair));
-        (uint112 _reserve0BeforeSync, uint112 _reserve1BeforeSync, ) = _uniswapV2Pair.getReserves();
+        (uint112 _reserve0BeforeSync, uint112 _reserve1BeforeSync,) = _uniswapV2Pair.getReserves();
 
         assertNotEq(poolBalanceToken0, _reserve0BeforeSync);
         assertNotEq(poolBalanceToken1, _reserve1BeforeSync);
@@ -417,7 +419,7 @@ contract UniswapV2PairTest is Test {
 
         _uniswapV2Pair.sync();
 
-        (uint112 _reserve0AfterSync, uint112 _reserve1AfterSync, ) = _uniswapV2Pair.getReserves();
+        (uint112 _reserve0AfterSync, uint112 _reserve1AfterSync,) = _uniswapV2Pair.getReserves();
 
         assertEq(poolBalanceToken0, _reserve0AfterSync);
         assertEq(poolBalanceToken1, _reserve1AfterSync);
@@ -442,6 +444,7 @@ contract UniswapV2PairTest is Test {
 
     function testFeeToOn(address feeTo) public {
         vm.assume(feeTo != address(this));
+        vm.assume(feeTo != address(0));
 
         _uniswapV2Factory.setFeeTo(feeTo);
 
@@ -492,16 +495,14 @@ contract UniswapV2PairTest is Test {
 
         _uniswapV2Pair.sync();
 
-        uint256 initialPriceToken0 = ud60x18(_reserve1)
-            .mul(ud60x18(112e18).exp2())
-            .div(ud60x18(_reserve0).mul(ud60x18(1e36)))
-            .intoUint256() * timeElapsed;
-        uint256 initialPriceToken1 = ud60x18(_reserve0)
-            .mul(ud60x18(112e18).exp2())
-            .div(ud60x18(_reserve1).mul(ud60x18(1e36)))
-            .intoUint256() * timeElapsed;
+        uint256 initialPriceToken0 = ud60x18(_reserve1).mul(ud60x18(112e18).exp2()).div(
+            ud60x18(_reserve0).mul(ud60x18(1e36))
+        ).intoUint256() * timeElapsed;
+        uint256 initialPriceToken1 = ud60x18(_reserve0).mul(ud60x18(112e18).exp2()).div(
+            ud60x18(_reserve1).mul(ud60x18(1e36))
+        ).intoUint256() * timeElapsed;
 
-        (, , uint32 blockTimestampLast) = _uniswapV2Pair.getReserves();
+        (,, uint32 blockTimestampLast) = _uniswapV2Pair.getReserves();
 
         assertEq(_uniswapV2Pair.price0CumulativeLast(), initialPriceToken0);
         assertEq(_uniswapV2Pair.price1CumulativeLast(), initialPriceToken1);
@@ -515,7 +516,7 @@ contract UniswapV2PairTest is Test {
 
         _uniswapV2Pair.swap(0, 1 * 10 ** 18, address(this));
 
-        (, , blockTimestampLast) = _uniswapV2Pair.getReserves();
+        (,, blockTimestampLast) = _uniswapV2Pair.getReserves();
 
         assertEq(_uniswapV2Pair.price0CumulativeLast(), initialPriceToken0 * 10);
         assertEq(_uniswapV2Pair.price1CumulativeLast(), initialPriceToken1 * 10);
@@ -527,15 +528,13 @@ contract UniswapV2PairTest is Test {
 
         uint112 newReserve0 = 6 * 10 ** 18;
         uint112 newReserve1 = 2 * 10 ** 18;
-        uint256 newPriceToken0 = ud60x18(newReserve1)
-            .mul(ud60x18(112e18).exp2())
-            .div(ud60x18(newReserve0).mul(ud60x18(1e36)))
-            .intoUint256() * timeElapsed;
-        uint256 newPriceToken1 = ud60x18(newReserve0)
-            .mul(ud60x18(112e18).exp2())
-            .div(ud60x18(newReserve1).mul(ud60x18(1e36)))
-            .intoUint256() * timeElapsed;
-        (, , blockTimestampLast) = _uniswapV2Pair.getReserves();
+        uint256 newPriceToken0 = ud60x18(newReserve1).mul(ud60x18(112e18).exp2()).div(
+            ud60x18(newReserve0).mul(ud60x18(1e36))
+        ).intoUint256() * timeElapsed;
+        uint256 newPriceToken1 = ud60x18(newReserve0).mul(ud60x18(112e18).exp2()).div(
+            ud60x18(newReserve1).mul(ud60x18(1e36))
+        ).intoUint256() * timeElapsed;
+        (,, blockTimestampLast) = _uniswapV2Pair.getReserves();
 
         assertEq(_uniswapV2Pair.price0CumulativeLast(), initialPriceToken0 * 10 + newPriceToken0 * 10);
         assertEq(_uniswapV2Pair.price1CumulativeLast(), initialPriceToken1 * 10 + newPriceToken1 * 10);
@@ -565,17 +564,17 @@ contract UniswapV2PairTest is Test {
         console.log(_kLast);
 
         if (_kLast != 0) {
-            uint rootK = UniswapMath.sqrt(uint(_reserve0) * _reserve1);
+            uint256 rootK = UniswapMath.sqrt(uint256(_reserve0) * _reserve1);
 
             console.log(rootK);
 
-            uint rootKLast = UniswapMath.sqrt(_kLast);
+            uint256 rootKLast = UniswapMath.sqrt(_kLast);
 
             console.log(rootKLast);
 
             if (rootK > rootKLast) {
-                uint numerator = _uniswapV2Pair.totalSupply() * (rootK - rootKLast);
-                uint denominator = (rootK * 5) + rootKLast;
+                uint256 numerator = _uniswapV2Pair.totalSupply() * (rootK - rootKLast);
+                uint256 denominator = (rootK * 5) + rootKLast;
                 liquidity = numerator / denominator;
             }
         }

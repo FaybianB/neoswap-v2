@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.20;
+pragma solidity 0.8.23;
 
 import { IUniswapV2ERC20 } from "./interfaces/IUniswapV2ERC20.sol";
 

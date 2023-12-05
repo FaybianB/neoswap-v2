@@ -3,12 +3,12 @@ pragma solidity 0.8.23;
 
 import { IUniswapV2Pair } from "./interfaces/IUniswapV2Pair.sol";
 import { UniswapV2ERC20 } from "./UniswapV2ERC20.sol";
-import { UD60x18, ud60x18 } from "@prb/math/UD60x18.sol";
 import { Math } from "../src/libraries/Math.sol";
 import { IUniswapV2Factory } from "./interfaces/IUniswapV2Factory.sol";
 import { SafeERC20, IERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { IERC3156FlashBorrower } from "@openzeppelin/contracts/interfaces/IERC3156FlashBorrower.sol";
 import { IERC3156FlashLender } from "@openzeppelin/contracts/interfaces/IERC3156FlashLender.sol";
+import { UQ112x112 } from "./libraries/UQ112x112.sol";
 
 /**
  * @title UniswapV2Pair
@@ -16,6 +16,7 @@ import { IERC3156FlashLender } from "@openzeppelin/contracts/interfaces/IERC3156
  */
 contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, IERC3156FlashLender {
     using SafeERC20 for IERC20;
+    using UQ112x112 for uint224;
 
     // The selector for the transfer function
     bytes4 private constant SELECTOR = bytes4(keccak256(bytes("transfer(address,uint256)")));
@@ -358,12 +359,11 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, IERC3156FlashLender {
             // Update the cumulative prices
             // * never overflows, and + overflow is desired
             unchecked {
-                price0CumulativeLast += ud60x18(_reserve1).mul(ud60x18(112e18).exp2()).div(
-                    ud60x18(_reserve0).mul(ud60x18(1e36))
-                ).intoUint256() * timeElapsed;
-                price1CumulativeLast += ud60x18(_reserve0).mul(ud60x18(112e18).exp2()).div(
-                    ud60x18(_reserve1).mul(ud60x18(1e36))
-                ).intoUint256() * timeElapsed;
+                //price0CumulativeLast += ud60x18(_reserve1).div(ud60x18(_reserve0)).intoUint256() * timeElapsed;
+                //price1CumulativeLast += ud60x18(_reserve0).div(ud60x18(_reserve1)).intoUint256() * timeElapsed;
+
+                price0CumulativeLast += uint256(UQ112x112.encode(_reserve1).uqdiv(_reserve0)) * timeElapsed;
+                price1CumulativeLast += uint256(UQ112x112.encode(_reserve0).uqdiv(_reserve1)) * timeElapsed;
             }
         }
 
@@ -383,6 +383,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, IERC3156FlashLender {
     function _mintFee(uint112 _reserve0, uint112 _reserve1) private returns (bool feeOn) {
         address feeTo = IUniswapV2Factory(factory).feeTo();
         feeOn = feeTo != address(0);
+        
         uint256 _kLast = kLast;
 
         if (feeOn) {

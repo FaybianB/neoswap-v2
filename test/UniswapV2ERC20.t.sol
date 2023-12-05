@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import { Test } from "forge-std/Test.sol";
 import { console } from "forge-std/console.sol";
-import { ERC20 } from "../src/test/ERC20.sol";
+import { ERC20Mock as ERC20 } from "../src/test/ERC20Mock.sol";
 import { UniswapV2ERC20 } from "../src/UniswapV2ERC20.sol";
 
 contract UniswapV2ERC20Test is Test {

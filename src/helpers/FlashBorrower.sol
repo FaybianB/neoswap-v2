@@ -16,6 +16,8 @@ contract FlashBorrower is IERC3156FlashBorrower {
     // The flash lender contract
     IERC3156FlashLender private _lender;
 
+    bool private _enableReturn = true;
+
     // Event emitted when a loan is taken
     event LoanTaken(address indexed lender, address indexed token, uint256 amountBorrowed);
 
@@ -48,7 +50,7 @@ contract FlashBorrower is IERC3156FlashBorrower {
 
         emit LoanTaken(msg.sender, token, amount);
 
-        return keccak256("ERC3156FlashBorrower.onFlashLoan");
+        return _enableReturn ? keccak256("ERC3156FlashBorrower.onFlashLoan") : bytes32(0);
     }
 
     /**
@@ -64,5 +66,9 @@ contract FlashBorrower is IERC3156FlashBorrower {
         IERC20(token).approve(address(_lender), _allowance + _repayment);
 
         _lender.flashLoan(this, token, amount, "");
+    }
+
+    function setEnableReturn(bool enable) external {
+        _enableReturn = enable;
     }
 }

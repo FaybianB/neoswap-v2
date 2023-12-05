@@ -40,22 +40,11 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
     }
 
     /**
-     * @dev Approve `spender` to transfer `value` tokens on behalf of `msg.sender`
-     * @param spender The address which will spend the funds.
-     * @param value The amount of tokens to be spent.
-     */
-    function approve(address spender, uint256 value) external returns (bool) {
-        _approve(msg.sender, spender, value);
-
-        return true;
-    }
-
-    /**
      * @dev Transfer `value` tokens from `msg.sender` to `to`
      * @param to The address to transfer to.
      * @param value The amount of tokens to be transferred.
      */
-    function transfer(address to, uint256 value) external returns (bool) {
+    function transfer(address to, uint256 value) public virtual returns (bool) {
         _transfer(msg.sender, to, value);
 
         return true;
@@ -67,7 +56,7 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
      * @param to The address to transfer to.
      * @param value The amount of tokens to be transferred.
      */
-    function transferFrom(address from, address to, uint256 value) external returns (bool) {
+    function transferFrom(address from, address to, uint256 value) public virtual returns (bool) {
         // Check if the allowance is not maxed out
         if (allowance[from][msg.sender] != type(uint256).max) {
             // Subtract the transferred value from the allowance
@@ -75,6 +64,17 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
         }
 
         _transfer(from, to, value);
+
+        return true;
+    }
+
+    /**
+     * @dev Approve `spender` to transfer `value` tokens on behalf of `msg.sender`
+     * @param spender The address which will spend the funds.
+     * @param value The amount of tokens to be spent.
+     */
+    function approve(address spender, uint256 value) external returns (bool) {
+        _approve(msg.sender, spender, value);
 
         return true;
     }

@@ -4,7 +4,6 @@ out = "out"
 libs = ["lib"]
 remappings = [
     "@openzeppelin/=lib/openzeppelin-contracts/",
-    "@prb/math/=lib/prb-math/src/",
     "@v2-core/=lib/v2-core",
 ]
 

@@ -609,6 +609,7 @@ contract UniswapV2PairTest is Test {
         uint256 poolBalanceToken1 = ERC20(_token1).balanceOf(address(_pair));
         (uint256 token0ReturnedAmount, uint256 token1ReturnedAmount) = _uniswapV2Pair.burn(address(this));
 
+        assertEq(_uniswapV2Pair.kLast(), 0);
         assertEq(_uniswapV2Pair.totalSupply(), _uniswapV2Pair.MINIMUM_LIQUIDITY());
         assertEq(_uniswapV2Pair.balanceOf(feeTo), 0);
         // using 1000 here instead of the symbolic MINIMUM_LIQUIDITY because the amounts only happen to be equal...

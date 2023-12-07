@@ -359,9 +359,6 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, IERC3156FlashLender {
             // Update the cumulative prices
             // * never overflows, and + overflow is desired
             unchecked {
-                //price0CumulativeLast += ud60x18(_reserve1).div(ud60x18(_reserve0)).intoUint256() * timeElapsed;
-                //price1CumulativeLast += ud60x18(_reserve0).div(ud60x18(_reserve1)).intoUint256() * timeElapsed;
-
                 price0CumulativeLast += uint256(UQ112x112.encode(_reserve1).uqdiv(_reserve0)) * timeElapsed;
                 price1CumulativeLast += uint256(UQ112x112.encode(_reserve0).uqdiv(_reserve1)) * timeElapsed;
             }
@@ -383,7 +380,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20, IERC3156FlashLender {
     function _mintFee(uint112 _reserve0, uint112 _reserve1) private returns (bool feeOn) {
         address feeTo = IUniswapV2Factory(factory).feeTo();
         feeOn = feeTo != address(0);
-        
+
         uint256 _kLast = kLast;
 
         if (feeOn) {

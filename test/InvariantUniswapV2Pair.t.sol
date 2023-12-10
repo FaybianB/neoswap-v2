@@ -92,24 +92,6 @@ contract InvariantUniswapV2PairTest is Test {
         _totalSupply += fee;
         uint256 expectedLiquidity =
             UniswapMath.min((token0Amount * _totalSupply) / reserve0, (token1Amount * _totalSupply) / reserve1);
-
-        /*console.log("Accumulated Fees: ");
-        console.log(_uniswapV2PairHandler.accumulatedFees());
-
-        console.log("Mint Fee: ");
-        console.log(_mintFee(reserve0, reserve1));*/
-
-        console.log("Invariant Total Supply: ");
-        console.log(_totalSupply);
-        console.log("Invariant Token0 Amount: ");
-        console.log(token0Amount);
-        console.log("Invariant Token1 Amount: ");
-        console.log(token1Amount);
-        console.log("Invariant Reserve0 Amount: ");
-        console.log(reserve0);
-        console.log("Invariant Reserve1 Amount: ");
-        console.log(reserve1);
-
         (,, uint256 liquidity) = _uniswapV2PairHandler.addLiquidity(token0Count, token1Count);
 
         assertEq(expectedLiquidity, liquidity);

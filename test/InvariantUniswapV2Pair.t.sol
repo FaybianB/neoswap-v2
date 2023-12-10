@@ -121,36 +121,4 @@ contract InvariantUniswapV2PairTest is Test {
             }
         }
     }
-
-    /*function _mintFee(uint112 _reserve0, uint112 _reserve1) private returns (uint256 fee) {
-        address feeTo = _uniswapV2Factory.feeTo();
-        bool feeOn = feeTo != address(0);
-        uint256 _kLast = _uniswapV2Pair.kLast();
-
-        if (feeOn) {
-            if (_kLast != 0) {
-                // Calculate the square root of the product of the reserves
-                uint256 rootK = Math.sqrt(uint256(_reserve0) * _reserve1);
-                // Calculate the square root of kLast
-                uint256 rootKLast = Math.sqrt(_kLast);
-
-                if (rootK > rootKLast) {
-                    uint256 _totalSupply = _uniswapV2Pair.totalSupply();
-                    // Calculate the numerator for the liquidity to mint
-                    uint256 numerator = _totalSupply * (rootK - rootKLast);
-                    // Calculate the denominator for the liquidity to mint
-                    uint256 denominator = (rootK * 5) + rootKLast;
-                    // Calculate the liquidity to mint
-                    uint256 liquidity = numerator / denominator;
-
-                    // If the liquidity is greater than 0, mint the liquidity to the feeTo address
-                    if (liquidity > 0) {
-                        _uniswapV2Pair._mint(feeTo, liquidity);
-                    }
-                }
-            }
-        } else if (_kLast != 0) {
-            //kLast = 0;
-        }
-    }*/
 }

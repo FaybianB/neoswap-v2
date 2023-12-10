@@ -15,6 +15,7 @@ import { IERC3156FlashBorrower } from "@openzeppelin/contracts/interfaces/IERC31
 import { ERC3156FlashBorrowerMock } from "@openzeppelin/contracts/mocks/ERC3156FlashBorrowerMock.sol";
 import { UQ112x112 } from "../src/libraries/UQ112x112.sol";
 import { UniswapV2PairHandler } from "./handler/UniswapV2PairHandler.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract InvariantUniswapV2PairTest is Test {
     using UQ112x112 for uint224;
@@ -60,28 +61,114 @@ contract InvariantUniswapV2PairTest is Test {
         uint256 constantProduct = poolBalanceToken0 * poolBalanceToken1;
         uint256 constantProductWithoutFees =
             (poolBalanceToken0 - _uniswapV2PairHandler.accumulatedFees()) * poolBalanceToken1;
-
-        console.log(string.concat("Constant Product Without Fees: "));
-        console.log(constantProductWithoutFees);
-
         uint256 totalFeeAmount = constantProduct - constantProductWithoutFees;
-
-        console.log(string.concat("Total Fee Amount: "));
-        console.log(totalFeeAmount);
-
         uint256 constantProductWithoutFeeTo =
             _uniswapV2PairHandler.token0LiquidityWithoutFeeTo() * _uniswapV2PairHandler.token1LiquidityWithoutFeeTo();
-
-        console.log(string.concat("Constant Product Without FeeTo: "));
-        console.log(constantProductWithoutFeeTo);
-
         uint256 kLast = _uniswapV2Pair.kLast();
-
-        console.log(string.concat("kLast: "));
-        console.log(kLast);
-
         uint256 k = kLast < constantProduct ? kLast + totalFeeAmount + constantProductWithoutFeeTo : kLast;
 
         assertEq(constantProduct, k);
     }
+
+    function invariant_constant_product_formula() external {
+        assertEq(_uniswapV2PairHandler.constantProductBeforeSwap(), _uniswapV2PairHandler.constantProductAfterSwap());
+    }
+
+    function invariant_token_ratio() external {
+        uint256 _totalSupply = _uniswapV2Pair.totalSupply();
+
+        if (_totalSupply == 0) {
+            return;
+        }
+
+        _uniswapV2Pair.sync();
+
+        uint256 token0Count = 10;
+        uint256 token1Count = 10;
+        uint256 token0Amount = token0Count * 10 ** 18;
+        uint256 token1Amount = token1Count * 10 ** 18;
+        (uint112 reserve0, uint112 reserve1,) = _uniswapV2Pair.getReserves();
+        uint256 fee = _mintFee(reserve0, reserve1);
+        _totalSupply += fee;
+        uint256 expectedLiquidity =
+            UniswapMath.min((token0Amount * _totalSupply) / reserve0, (token1Amount * _totalSupply) / reserve1);
+
+        /*console.log("Accumulated Fees: ");
+        console.log(_uniswapV2PairHandler.accumulatedFees());
+
+        console.log("Mint Fee: ");
+        console.log(_mintFee(reserve0, reserve1));*/
+
+        console.log("Invariant Total Supply: ");
+        console.log(_totalSupply);
+        console.log("Invariant Token0 Amount: ");
+        console.log(token0Amount);
+        console.log("Invariant Token1 Amount: ");
+        console.log(token1Amount);
+        console.log("Invariant Reserve0 Amount: ");
+        console.log(reserve0);
+        console.log("Invariant Reserve1 Amount: ");
+        console.log(reserve1);
+
+        (,, uint256 liquidity) = _uniswapV2PairHandler.addLiquidity(token0Count, token1Count);
+
+        assertEq(expectedLiquidity, liquidity);
+    }
+
+    function _mintFee(uint112 _reserve0, uint112 _reserve1) private returns (uint256 fee) {
+        address feeTo = _uniswapV2Factory.feeTo();
+        bool feeOn = feeTo != address(0);
+        uint256 _kLast = _uniswapV2Pair.kLast();
+        uint256 _totalSupply = _uniswapV2Pair.totalSupply();
+
+        if (feeOn) {
+            if (_kLast != 0) {
+                // Calculate the square root of the product of the reserves
+                uint256 rootK = Math.sqrt(uint256(_reserve0) * _reserve1);
+                // Calculate the square root of kLast
+                uint256 rootKLast = Math.sqrt(_kLast);
+
+                if (rootK > rootKLast) {
+                    // Calculate the numerator for the liquidity to mint
+                    uint256 numerator = _totalSupply * (rootK - rootKLast);
+                    // Calculate the denominator for the liquidity to mint
+                    uint256 denominator = (rootK * 5) + rootKLast;
+                    // Calculate the liquidity to mint
+                    fee = numerator / denominator;
+                }
+            }
+        }
+    }
+
+    /*function _mintFee(uint112 _reserve0, uint112 _reserve1) private returns (uint256 fee) {
+        address feeTo = _uniswapV2Factory.feeTo();
+        bool feeOn = feeTo != address(0);
+        uint256 _kLast = _uniswapV2Pair.kLast();
+
+        if (feeOn) {
+            if (_kLast != 0) {
+                // Calculate the square root of the product of the reserves
+                uint256 rootK = Math.sqrt(uint256(_reserve0) * _reserve1);
+                // Calculate the square root of kLast
+                uint256 rootKLast = Math.sqrt(_kLast);
+
+                if (rootK > rootKLast) {
+                    uint256 _totalSupply = _uniswapV2Pair.totalSupply();
+                    // Calculate the numerator for the liquidity to mint
+                    uint256 numerator = _totalSupply * (rootK - rootKLast);
+                    // Calculate the denominator for the liquidity to mint
+                    uint256 denominator = (rootK * 5) + rootKLast;
+                    // Calculate the liquidity to mint
+                    uint256 liquidity = numerator / denominator;
+
+                    // If the liquidity is greater than 0, mint the liquidity to the feeTo address
+                    if (liquidity > 0) {
+                        _uniswapV2Pair._mint(feeTo, liquidity);
+                    }
+                }
+            }
+        } else if (_kLast != 0) {
+            //kLast = 0;
+        }
+    }*/
 }

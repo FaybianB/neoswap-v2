@@ -2,11 +2,13 @@
 pragma solidity 0.8.23;
 
 import { Test } from "forge-std/Test.sol";
+import { console } from "forge-std/console.sol";
 import { UniswapV2Pair } from "../../src/UniswapV2Pair.sol";
 import { ERC20Mock as ERC20 } from "../../src/test/ERC20Mock.sol";
 import { FlashBorrower } from "../../src/helpers/FlashBorrower.sol";
 import { InvariantUniswapV2PairTest } from "../InvariantUniswapV2Pair.t.sol";
 import { UniswapV2Factory } from "../../src/UniswapV2Factory.sol";
+import { Math as UniswapMath } from "../../src/libraries/Math.sol";
 
 contract UniswapV2PairHandler is Test {
     address private _token0;
@@ -25,6 +27,8 @@ contract UniswapV2PairHandler is Test {
     uint256 public accumulatedFees = 0;
     uint256 public token0LiquidityWithoutFeeTo = 0;
     uint256 public token1LiquidityWithoutFeeTo = 0;
+    uint256 public constantProductBeforeSwap = 0;
+    uint256 public constantProductAfterSwap = 0;
 
     constructor(
         InvariantUniswapV2PairTest invariantUniswapV2PairTest,
@@ -55,6 +59,38 @@ contract UniswapV2PairHandler is Test {
         _flashBorrower.flashBorrow(_token0, amount);
     }
 
+    function mint(address to) external {
+        _uniswapV2Pair.mint(to);
+    }
+
+    function burn(address to) external {
+        _uniswapV2Pair.burn(to);
+    }
+
+    function swap(uint256 amount0Out, uint256 amount1Out, address to) external {
+        uint256 poolBalanceToken0Before = ERC20(_token0).balanceOf(address(_uniswapV2Pair));
+        uint256 poolBalanceToken1Before = ERC20(_token1).balanceOf(address(_uniswapV2Pair));
+
+        vm.assume(amount0Out <= poolBalanceToken0Before);
+        vm.assume(amount1Out <= poolBalanceToken1Before);
+
+        constantProductBeforeSwap = poolBalanceToken0Before * poolBalanceToken1Before;
+
+        _uniswapV2Pair.swap(amount0Out, amount1Out, to);
+
+        uint256 poolBalanceToken0After = ERC20(_token0).balanceOf(address(_uniswapV2Pair));
+        uint256 poolBalanceToken1After = ERC20(_token1).balanceOf(address(_uniswapV2Pair));
+        constantProductAfterSwap = poolBalanceToken0After * poolBalanceToken1After;
+    }
+
+    function skim(address to) external {
+        _uniswapV2Pair.skim(to);
+    }
+
+    function sync() external {
+        _uniswapV2Pair.sync();
+    }
+
     function setFeeTo(address feeTo) public {
         vm.prank(address(_invariantUniswapV2PairTest));
 
@@ -63,10 +99,10 @@ contract UniswapV2PairHandler is Test {
 
     function addLiquidity(uint256 token0Count, uint256 token1Count)
         public
-        returns (uint256 token0Amount, uint256 token1Amount)
+        returns (uint256 token0Amount, uint256 token1Amount, uint256 liquidity)
     {
-        token0Count = bound(token0Count, 1, UINT112_MAX_TOKENS);
-        token1Count = bound(token1Count, 1, UINT112_MAX_TOKENS);
+        token0Count = bound(token0Count, 1, UINT112_MAX_TOKENS / 4);
+        token1Count = bound(token1Count, 1, UINT112_MAX_TOKENS / 4);
         token0Amount = token0Count * 10 ** 18;
         token1Amount = token1Count * 10 ** 18;
 
@@ -86,7 +122,7 @@ contract UniswapV2PairHandler is Test {
             accumulatedFees = 0;
         }
 
-        _uniswapV2Pair.mint(address(this));
+        liquidity = _uniswapV2Pair.mint(address(this));
     }
 
     receive() external payable { }

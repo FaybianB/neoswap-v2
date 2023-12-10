@@ -14,6 +14,8 @@ contract UniswapV2PairHandler is Test {
     address private _token0;
     address private _token1;
 
+    address[] public feeReceivers;
+
     UniswapV2Pair private _uniswapV2Pair;
     UniswapV2Factory private _uniswapV2Factory;
     FlashBorrower private _flashBorrower;
@@ -29,6 +31,7 @@ contract UniswapV2PairHandler is Test {
     uint256 public token1LiquidityWithoutFeeTo = 0;
     uint256 public constantProductBeforeSwap = 0;
     uint256 public constantProductAfterSwap = 0;
+    uint256 public feeReceiversCount = 0;
 
     constructor(
         InvariantUniswapV2PairTest invariantUniswapV2PairTest,
@@ -92,6 +95,10 @@ contract UniswapV2PairHandler is Test {
     }
 
     function setFeeTo(address feeTo) public {
+        feeReceivers.push(feeTo);
+
+        feeReceiversCount++;
+
         vm.prank(address(_invariantUniswapV2PairTest));
 
         _uniswapV2Factory.setFeeTo(feeTo);

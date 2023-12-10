@@ -97,6 +97,27 @@ contract InvariantUniswapV2PairTest is Test {
         assertEq(expectedLiquidity, liquidity);
     }
 
+    function invariant_no_token_creation_or_destruction() external {
+        uint256 totalSupplyToken0 = ERC20(_token0).totalSupply();
+        uint256 totalSupplyToken1 = ERC20(_token1).totalSupply();
+        uint256 poolBalanceToken0 = ERC20(_token0).balanceOf(address(_pair));
+        uint256 poolBalanceToken1 = ERC20(_token1).balanceOf(address(_pair));
+        uint256 deployerBalanceToken0 = ERC20(_token0).balanceOf(address(this));
+        uint256 deployerBalanceToken1 = ERC20(_token1).balanceOf(address(this));
+        uint256 flashBorrowerBalanceToken0 = ERC20(_token0).balanceOf(address(_flashBorrower));
+        uint256 flashBorrowerBalanceToken1 = ERC20(_token1).balanceOf(address(_flashBorrower));
+        uint256 sumToken0 = deployerBalanceToken0 + poolBalanceToken0 + flashBorrowerBalanceToken0;
+        uint256 sumToken1 = deployerBalanceToken1 + poolBalanceToken1 + flashBorrowerBalanceToken1;
+
+        for (uint256 i = 0; i < _uniswapV2PairHandler.feeReceiversCount(); i++) {
+            sumToken0 += ERC20(_token0).balanceOf(address(_uniswapV2PairHandler.feeReceivers(i)));
+            sumToken1 += ERC20(_token1).balanceOf(address(_uniswapV2PairHandler.feeReceivers(i)));
+        }
+
+        assertEq(sumToken0, totalSupplyToken0);
+        assertEq(sumToken1, totalSupplyToken1);
+    }
+
     function _mintFee(uint112 _reserve0, uint112 _reserve1) private returns (uint256 fee) {
         address feeTo = _uniswapV2Factory.feeTo();
         bool feeOn = feeTo != address(0);

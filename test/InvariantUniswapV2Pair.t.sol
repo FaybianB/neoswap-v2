@@ -113,9 +113,18 @@ contract InvariantUniswapV2PairTest is Test {
             sumToken0 += ERC20(_token0).balanceOf(address(_uniswapV2PairHandler.feeReceivers(i)));
             sumToken1 += ERC20(_token1).balanceOf(address(_uniswapV2PairHandler.feeReceivers(i)));
         }
+        for (uint256 i = 0; i < _uniswapV2PairHandler.skimReceiversCount(); i++) {
+            sumToken0 += ERC20(_token0).balanceOf(address(_uniswapV2PairHandler.skimReceivers(i)));
+            sumToken1 += ERC20(_token1).balanceOf(address(_uniswapV2PairHandler.skimReceivers(i)));
+        }
 
         assertEq(sumToken0, totalSupplyToken0);
         assertEq(sumToken1, totalSupplyToken1);
+    }
+
+    function invariant_swap_slippage_and_price_impact() external {
+        assertEq(_uniswapV2PairHandler.expectedAmount0In(), _uniswapV2PairHandler.amount0In());
+        assertEq(_uniswapV2PairHandler.expectedAmount1In(), _uniswapV2PairHandler.amount1In());
     }
 
     function _mintFee(uint112 _reserve0, uint112 _reserve1) private returns (uint256 fee) {

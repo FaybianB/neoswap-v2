@@ -9,12 +9,15 @@ import { FlashBorrower } from "../../src/helpers/FlashBorrower.sol";
 import { InvariantUniswapV2PairTest } from "../InvariantUniswapV2Pair.t.sol";
 import { UniswapV2Factory } from "../../src/UniswapV2Factory.sol";
 import { Math as UniswapMath } from "../../src/libraries/Math.sol";
+//import { UniswapV2Library } from "v2-periphery/contracts/libraries/UniswapV2Library.sol";
 
 contract UniswapV2PairHandler is Test {
     address private _token0;
     address private _token1;
 
     address[] public feeReceivers;
+    address[] public skimReceivers;
+    address[] public burnReceivers;
 
     UniswapV2Pair private _uniswapV2Pair;
     UniswapV2Factory private _uniswapV2Factory;
@@ -31,7 +34,13 @@ contract UniswapV2PairHandler is Test {
     uint256 public token1LiquidityWithoutFeeTo = 0;
     uint256 public constantProductBeforeSwap = 0;
     uint256 public constantProductAfterSwap = 0;
+    uint256 public expectedAmount0In = 0;
+    uint256 public expectedAmount1In = 0;
+    uint256 public amount0In = 0;
+    uint256 public amount1In = 0;
     uint256 public feeReceiversCount = 0;
+    uint256 public skimReceiversCount = 0;
+    uint256 public burnReceiversCount = 0;
 
     constructor(
         InvariantUniswapV2PairTest invariantUniswapV2PairTest,
@@ -67,6 +76,10 @@ contract UniswapV2PairHandler is Test {
     }
 
     function burn(address to) external {
+        burnReceivers.push(to);
+
+        burnReceiversCount++;
+
         _uniswapV2Pair.burn(to);
     }
 
@@ -78,15 +91,24 @@ contract UniswapV2PairHandler is Test {
         vm.assume(amount1Out <= poolBalanceToken1Before);
 
         constantProductBeforeSwap = poolBalanceToken0Before * poolBalanceToken1Before;
+        (uint112 _reserve0, uint112 _reserve1,) = _uniswapV2Pair.getReserves();
+        expectedAmount0In = _getAmountIn(amount1Out, _reserve0, _reserve1);
+        expectedAmount1In = _getAmountIn(amount0Out, _reserve1, _reserve0);
 
         _uniswapV2Pair.swap(amount0Out, amount1Out, to);
 
         uint256 poolBalanceToken0After = ERC20(_token0).balanceOf(address(_uniswapV2Pair));
         uint256 poolBalanceToken1After = ERC20(_token1).balanceOf(address(_uniswapV2Pair));
         constantProductAfterSwap = poolBalanceToken0After * poolBalanceToken1After;
+        amount0In = poolBalanceToken0After - poolBalanceToken0Before;
+        amount1In = poolBalanceToken1After - poolBalanceToken1Before;
     }
 
     function skim(address to) external {
+        skimReceivers.push(to);
+
+        skimReceiversCount++;
+
         _uniswapV2Pair.skim(to);
     }
 
@@ -130,6 +152,19 @@ contract UniswapV2PairHandler is Test {
         }
 
         liquidity = _uniswapV2Pair.mint(address(this));
+    }
+
+    // given an output amount of an asset and pair reserves, returns a required input amount of the other asset
+    function _getAmountIn(uint256 amountOut, uint256 reserveIn, uint256 reserveOut)
+        private
+        pure
+        returns (uint256 amountIn)
+    {
+        require(amountOut > 0, "UniswapV2Library: INSUFFICIENT_OUTPUT_AMOUNT");
+        require(reserveIn > 0 && reserveOut > 0, "UniswapV2Library: INSUFFICIENT_LIQUIDITY");
+        uint256 numerator = reserveIn * amountOut * 1000;
+        uint256 denominator = (reserveOut - amountOut) * 997;
+        amountIn = (numerator / denominator) + 1;
     }
 
     receive() external payable { }

@@ -7,4 +7,8 @@ remappings = [
     "@v2-core/=lib/v2-core",
 ]
 
+[invariant]
+runs = 300
+depth = 20
+
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

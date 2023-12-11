@@ -9,7 +9,6 @@ import { FlashBorrower } from "../../src/helpers/FlashBorrower.sol";
 import { InvariantUniswapV2PairTest } from "../InvariantUniswapV2Pair.t.sol";
 import { UniswapV2Factory } from "../../src/UniswapV2Factory.sol";
 import { Math as UniswapMath } from "../../src/libraries/Math.sol";
-//import { UniswapV2Library } from "v2-periphery/contracts/libraries/UniswapV2Library.sol";
 
 contract UniswapV2PairHandler is Test {
     address private _token0;
@@ -18,6 +17,7 @@ contract UniswapV2PairHandler is Test {
     address[] public feeReceivers;
     address[] public skimReceivers;
     address[] public burnReceivers;
+    address[] public swapReceivers;
 
     UniswapV2Pair private _uniswapV2Pair;
     UniswapV2Factory private _uniswapV2Factory;
@@ -41,6 +41,7 @@ contract UniswapV2PairHandler is Test {
     uint256 public feeReceiversCount = 0;
     uint256 public skimReceiversCount = 0;
     uint256 public burnReceiversCount = 0;
+    uint256 public swapReceiversCount = 0;
 
     constructor(
         InvariantUniswapV2PairTest invariantUniswapV2PairTest,
@@ -84,6 +85,10 @@ contract UniswapV2PairHandler is Test {
     }
 
     function swap(uint256 amount0Out, uint256 amount1Out, address to) external {
+        swapReceivers.push(to);
+
+        swapReceiversCount++;
+
         uint256 poolBalanceToken0Before = ERC20(_token0).balanceOf(address(_uniswapV2Pair));
         uint256 poolBalanceToken1Before = ERC20(_token1).balanceOf(address(_uniswapV2Pair));
 
@@ -130,8 +135,8 @@ contract UniswapV2PairHandler is Test {
         public
         returns (uint256 token0Amount, uint256 token1Amount, uint256 liquidity)
     {
-        token0Count = bound(token0Count, 1, UINT112_MAX_TOKENS / 4);
-        token1Count = bound(token1Count, 1, UINT112_MAX_TOKENS / 4);
+        token0Count = bound(token0Count, 1, UINT112_MAX_TOKENS / 5);
+        token1Count = bound(token1Count, 1, UINT112_MAX_TOKENS / 5);
         token0Amount = token0Count * 10 ** 18;
         token1Amount = token1Count * 10 ** 18;
 

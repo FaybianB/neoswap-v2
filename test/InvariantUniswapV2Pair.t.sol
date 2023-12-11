@@ -117,6 +117,10 @@ contract InvariantUniswapV2PairTest is Test {
             sumToken0 += ERC20(_token0).balanceOf(address(_uniswapV2PairHandler.skimReceivers(i)));
             sumToken1 += ERC20(_token1).balanceOf(address(_uniswapV2PairHandler.skimReceivers(i)));
         }
+        for (uint256 i = 0; i < _uniswapV2PairHandler.swapReceiversCount(); i++) {
+            sumToken0 += ERC20(_token0).balanceOf(address(_uniswapV2PairHandler.skimReceivers(i)));
+            sumToken1 += ERC20(_token1).balanceOf(address(_uniswapV2PairHandler.skimReceivers(i)));
+        }
 
         assertEq(sumToken0, totalSupplyToken0);
         assertEq(sumToken1, totalSupplyToken1);
@@ -125,6 +129,33 @@ contract InvariantUniswapV2PairTest is Test {
     function invariant_swap_slippage_and_price_impact() external {
         assertEq(_uniswapV2PairHandler.expectedAmount0In(), _uniswapV2PairHandler.amount0In());
         assertEq(_uniswapV2PairHandler.expectedAmount1In(), _uniswapV2PairHandler.amount1In());
+    }
+
+    function invariant_liquidity_provider_share() external {
+        uint256 _totalSupply = _uniswapV2Pair.totalSupply();
+
+        if (_totalSupply == 0) {
+            return;
+        }
+
+        address burnReceiver = makeAddr("burnReceiver");
+        uint256 balance0 = ERC20(_token0).balanceOf(address(_uniswapV2Pair));
+        uint256 balance1 = ERC20(_token1).balanceOf(address(_uniswapV2Pair));
+        uint256 liquidityTokenAmount = _uniswapV2Pair.balanceOf(address(_uniswapV2PairHandler));
+        uint256 expectedLiquidity = _uniswapV2Pair.balanceOf(address(_uniswapV2Pair)) + liquidityTokenAmount;
+        (uint112 reserve0, uint112 reserve1,) = _uniswapV2Pair.getReserves();
+        uint256 fee = _mintFee(reserve0, reserve1);
+        uint256 expectedToken0ReturnAmount = (expectedLiquidity * balance0) / (_totalSupply + fee);
+        uint256 expectedToken1ReturnAmount = (expectedLiquidity * balance1) / (_totalSupply + fee);
+
+        vm.prank(address(_uniswapV2PairHandler));
+
+        _uniswapV2Pair.transfer(address(_uniswapV2Pair), liquidityTokenAmount);
+
+        _uniswapV2PairHandler.burn(burnReceiver);
+
+        assertEq(expectedToken0ReturnAmount, ERC20(_token0).balanceOf(burnReceiver));
+        assertEq(expectedToken1ReturnAmount, ERC20(_token1).balanceOf(burnReceiver));
     }
 
     function _mintFee(uint112 _reserve0, uint112 _reserve1) private returns (uint256 fee) {

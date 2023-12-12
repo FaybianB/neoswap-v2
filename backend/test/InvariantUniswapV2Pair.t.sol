@@ -118,8 +118,8 @@ contract InvariantUniswapV2PairTest is Test {
             sumToken1 += ERC20(_token1).balanceOf(address(_uniswapV2PairHandler.skimReceivers(i)));
         }
         for (uint256 i = 0; i < _uniswapV2PairHandler.swapReceiversCount(); i++) {
-            sumToken0 += ERC20(_token0).balanceOf(address(_uniswapV2PairHandler.skimReceivers(i)));
-            sumToken1 += ERC20(_token1).balanceOf(address(_uniswapV2PairHandler.skimReceivers(i)));
+            sumToken0 += ERC20(_token0).balanceOf(address(_uniswapV2PairHandler.swapReceivers(i)));
+            sumToken1 += ERC20(_token1).balanceOf(address(_uniswapV2PairHandler.swapReceivers(i)));
         }
 
         assertEq(sumToken0, totalSupplyToken0);

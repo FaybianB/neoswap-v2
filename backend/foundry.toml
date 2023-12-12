@@ -8,7 +8,7 @@ remappings = [
 ]
 
 [invariant]
-runs = 350
-depth = 25
+runs = 400
+depth = 30
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

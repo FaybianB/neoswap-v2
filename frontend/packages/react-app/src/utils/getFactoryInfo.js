@@ -10,7 +10,7 @@ export const getFactoryInfo = async (factoryAddress, web3) => {
     allPairs: [],
   };
 
-  for (let i = 0; i < factoryInfo.allPairs.length; i++) {
+  for (let i = 0; i < factoryInfo.allPairsLength; i++) {
     factoryInfo.allPairs[i] = await factory.methods.allPairs(i).call();
   }
 

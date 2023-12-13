@@ -6,15 +6,12 @@ import { ROUTER_ADDRESS } from "../config";
 import { getFactoryInfo, getRouterInfo } from "../utils";
 
 export const loadPools = async (providerUrl) => {
-  console.log(providerUrl);
-
   const provider = new Web3.providers.HttpProvider(providerUrl);
   const web3 = new Web3(provider);
-
-  console.log(web3);
-
   const routerInfo = await getRouterInfo(ROUTER_ADDRESS, web3);
   const factoryInfo = await getFactoryInfo(routerInfo.factory, web3);
+
+  console.log(factoryInfo);
 
   return factoryInfo.pairsInfo;
 };

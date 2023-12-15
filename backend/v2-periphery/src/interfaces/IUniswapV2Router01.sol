@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.23;
 
 /**
@@ -9,13 +10,13 @@ interface IUniswapV2Router01 {
      * @dev Returns the address of the Uniswap V2 factory contract.
      * @return The address of the Uniswap V2 factory contract.
      */
-    function factory() external pure returns (address);
+    function factory() external view returns (address);
 
     /**
      * @dev Returns the address of the Wrapped Ether (WETH) contract.
      * @return The address of the Wrapped Ether (WETH) contract.
      */
-    function WETH() external pure returns (address);
+    function WETH() external view returns (address);
 
     /**
      * @dev Adds liquidity to a token pair on Uniswap.

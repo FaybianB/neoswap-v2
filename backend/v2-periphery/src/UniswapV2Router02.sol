@@ -1,12 +1,11 @@
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.23;
 
 import "../../v2-core/src/interfaces/IUniswapV2Factory.sol";
-import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
-
+import "../../solidity-lib/src/libraries/TransferHelper.sol";
 import "./interfaces/IUniswapV2Router02.sol";
 import "./libraries/UniswapV2Library.sol";
-import "./libraries/SafeMath.sol";
-import "./interfaces/IERC20.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./interfaces/IWETH.sol";
 
 contract UniswapV2Router02 is IUniswapV2Router02 {

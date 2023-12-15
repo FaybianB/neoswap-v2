@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.23;
 
 import { IUniswapV2Pair } from "../../../v2-core/src/interfaces/IUniswapV2Pair.sol";

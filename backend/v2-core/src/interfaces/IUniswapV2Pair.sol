@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.23;
 
+import { IUniswapV2ERC20 } from "./IUniswapV2ERC20.sol";
+
 /**
  * @title IUniswapV2Pair
  * @dev Interface for Uniswap V2 Pair
  */
-interface IUniswapV2Pair {
+interface IUniswapV2Pair is IUniswapV2ERC20 {
     /**
      * @dev Emitted when `amount0` and `amount1` are minted to `sender`
      * @param sender The address of the account minting the tokens

@@ -137,7 +137,8 @@ const Exchange = ({ pools }) => {
           toToken={toToken}
           amountIn={fromValueBigNumber}
           pairContract={pairAddress}
-          currencyValue={onToTokenChange}
+          currencyValue={toToken}
+          onSelect={onToTokenChange}
           currencies={counterpartTokens}
         />
         <Balance tokenBalance={toTokenBalance} />

@@ -7,6 +7,7 @@ import { TransferHelper } from "../../solidity-lib/src/libraries/TransferHelper.
 import { IUniswapV2Router02 } from "./interfaces/IUniswapV2Router02.sol";
 import { UniswapV2Library } from "./libraries/UniswapV2Library.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { IWETH } from "./interfaces/IWETH.sol";
 
 /**
@@ -14,10 +15,11 @@ import { IWETH } from "./interfaces/IWETH.sol";
  * @dev This contract is for adding and removing liquidity, and performing swaps on Uniswap V2.
  */
 contract UniswapV2Router02 is IUniswapV2Router02 {
+    using SafeERC20 for IERC20;
+
     /**
      * @dev The factory contract address.
      */
-
     address public immutable override factory;
     /**
      * @dev The WETH contract address.
@@ -397,6 +399,25 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
     }
 
     /**
+     * @dev Swaps an amount of one token for another along a path of pairs.
+     * @param amounts The amounts of the tokens to swap.
+     * @param path The path of pairs to swap along.
+     * @param _to The address to send the output tokens to.
+     */
+    function _swapByPair(uint256[] memory amounts, address[] memory path, address _to, address pair) internal virtual {
+        for (uint256 i; i < path.length - 1; i++) {
+            (address input, address output) = (path[i], path[i + 1]);
+            (address token0,) = UniswapV2Library.sortTokens(input, output);
+            uint256 amountOut = amounts[i + 1];
+            (uint256 amount0Out, uint256 amount1Out) =
+                input == token0 ? (uint256(0), amountOut) : (amountOut, uint256(0));
+            address to = i < path.length - 2 ? UniswapV2Library.pairFor(factory, output, path[i + 2]) : _to;
+
+            IUniswapV2Pair(pair).swap(amount0Out, amount1Out, to);
+        }
+    }
+
+    /**
      * @dev Swaps an exact amount of input tokens for as many output tokens as possible, along the route determined by the path.
      * @param amountIn The amount of input tokens to send.
      * @param amountOutMin The minimum amount of output tokens that must be received for the transaction not to revert.
@@ -421,6 +442,32 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         );
 
         _swap(amounts, path, to);
+    }
+
+    /**
+     * @dev Swaps an exact amount of input tokens for as many output tokens as possible, along the route determined by the path.
+     * @param amountIn The amount of input tokens to send.
+     * @param amountOutMin The minimum amount of output tokens that must be received for the transaction not to revert.
+     * @param path The path of pairs to swap along.
+     * @param to The address to send the output tokens to.
+     * @param deadline The time by which the transaction must be included to be valid.
+     * @return amounts The input token amounts.
+     */
+    function swapExactTokensForTokensByPair(
+        uint256 amountIn,
+        uint256 amountOutMin,
+        address[] calldata path,
+        address to,
+        uint256 deadline,
+        address pair
+    ) external virtual override ensure(deadline) returns (uint256[] memory amounts) {
+        amounts = UniswapV2Library.getAmountsOutByPair(pair, amountIn, path);
+
+        require(amounts[amounts.length - 1] >= amountOutMin, "UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT");
+
+        IERC20(path[0]).safeTransferFrom(msg.sender, pair, amounts[0]);
+
+        _swapByPair(amounts, path, to, pair);
     }
 
     /**

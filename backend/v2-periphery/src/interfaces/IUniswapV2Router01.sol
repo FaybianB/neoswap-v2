@@ -182,6 +182,24 @@ interface IUniswapV2Router01 {
     ) external returns (uint256[] memory amounts);
 
     /**
+     * @dev Swaps an exact amount of input tokens for as many output tokens as possible.
+     * @param amountIn The amount of input tokens to send.
+     * @param amountOutMin The minimum amount of output tokens to receive.
+     * @param path An array of token addresses. The path[i] and path[i + 1] represent a pair of tokens to be swapped.
+     * @param to The address to receive the output tokens.
+     * @param deadline The time by which the transaction must be included to be considered valid.
+     * @return amounts The amount of each token involved in the swaps.
+     */
+     function swapExactTokensForTokensByPair(
+        uint256 amountIn,
+        uint256 amountOutMin,
+        address[] calldata path,
+        address to,
+        uint256 deadline,
+        address pair
+    ) external returns (uint256[] memory amounts);
+
+    /**
      * @dev Swaps as few input tokens as possible for an exact amount of output tokens.
      * @param amountOut The amount of output tokens to receive.
      * @param amountInMax The maximum amount of input tokens to send.

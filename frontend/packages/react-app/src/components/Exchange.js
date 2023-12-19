@@ -80,14 +80,6 @@ const Exchange = ({ pools }) => {
     };
 
     const onSwapRequested = () => {
-        console.log("Amount In: " + fromValueBigNumber);
-        console.log("Amount Out Min: " + 0);
-        console.log("From Token: " + fromToken);
-        console.log("To Token: " + toToken);
-        console.log("To: " + account);
-        console.log("Deadline: " + Math.floor(Date.now() / 1000) + 60 * 2);
-        console.log("Pair Address: " + pairAddress);
-
         swapExecuteSend(
             fromValueBigNumber,
             0,
@@ -179,7 +171,7 @@ const Exchange = ({ pools }) => {
                 </button>
             ) : (
                 <button
-                    disabled={!"canSwap"}
+                    disabled={!canSwap}
                     onClick={onSwapRequested}
                     className={`${
                         canSwap

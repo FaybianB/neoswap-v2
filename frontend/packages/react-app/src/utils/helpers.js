@@ -89,8 +89,7 @@ export const useAmountsOut = (pairAddress, amountIn, fromToken, toToken) => {
     fromToken &&
     toToken
   );
-  console.log(pairAddress);
-  console.log(new Contract(ROUTER_ADDRESS, abis.router02));
+
   const { error, value } =
     useCall(
       areParamsValid && {
@@ -100,7 +99,39 @@ export const useAmountsOut = (pairAddress, amountIn, fromToken, toToken) => {
       }
     ) ?? {};
 
-  console.log(error);
+  return error ? parseUnits("0") : value?.amounts[1];
+};
+
+export const useAmountsOutByPair = (
+  pairAddress,
+  amountIn,
+  fromToken,
+  toToken
+) => {
+  const isValidAmountIn = amountIn.gt(parseUnits("0"));
+  const areParamsValid = !!(
+    pairAddress &&
+    isValidAmountIn &&
+    fromToken &&
+    toToken
+  );
+
+  // console.log(pairAddress);
+  // console.log('From token: ' + fromToken);
+  // console.log('To token: ' + toToken);
+
+  const { error, value } =
+    useCall(
+      areParamsValid && {
+        contract: new Contract(ROUTER_ADDRESS, abis.router02),
+        method: "getAmountsOutByPair",
+        args: [amountIn, [fromToken, toToken], pairAddress],
+      }
+    ) ?? {};
+
+  console.log("Error: " + error);
+  console.log("Value: " + value);
+
   return error ? parseUnits("0") : value?.amounts[1];
 };
 

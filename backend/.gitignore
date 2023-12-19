@@ -2,6 +2,7 @@
 cache/
 out/
 artifacts/
+.deps/
 
 # Ignores development broadcast logs
 !/broadcast

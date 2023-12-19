@@ -276,7 +276,6 @@ interface IUniswapV2Router01 {
      */
     function getAmountOut(uint256 amountIn, uint256 reserveIn, uint256 reserveOut)
         external
-        pure
         returns (uint256 amountOut);
 
     /**
@@ -299,7 +298,6 @@ interface IUniswapV2Router01 {
      */
     function getAmountsOut(uint256 amountIn, address[] calldata path)
         external
-        view
         returns (uint256[] memory amounts);
 
     /**
@@ -310,6 +308,5 @@ interface IUniswapV2Router01 {
      */
     function getAmountsIn(uint256 amountOut, address[] calldata path)
         external
-        view
         returns (uint256[] memory amounts);
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { chevronDown } from "../assets";
 import styles from "../styles";
-import { useOnClickOutside, useAmountsOut } from "../utils";
+import { useOnClickOutside, useAmountsOut, useAmountsOutByPair } from "../utils";
 import { formatUnits } from "ethers/lib/utils";
 
 const AmountOut = ({
@@ -17,13 +17,8 @@ const AmountOut = ({
   const [activeCurrency, setActiveCurrency] = useState("Select");
   const ref = useRef();
   const amountOut =
-    useAmountsOut(pairContract, amountIn, fromToken, toToken) ?? "0";
+  useAmountsOutByPair(pairContract, amountIn, fromToken, toToken) ?? "0";
 
-  /*console.log(pairContract);
-  console.log(amountIn);
-  console.log(fromToken);
-  console.log(toToken);
-  console.log(amountOut);*/
   useEffect(() => {
     if (Object.keys(currencies).includes(currencyValue)) {
       setActiveCurrency(currencies[currencyValue]);

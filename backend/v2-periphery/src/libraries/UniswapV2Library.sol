@@ -3,18 +3,8 @@ pragma solidity 0.8.23;
 
 import { IUniswapV2Pair } from "../../../v2-core/src/interfaces/IUniswapV2Pair.sol";
 
-/**
- * @title UniswapV2Library
- * @dev This library is used for various Uniswap V2 functionalities.
- */
 library UniswapV2Library {
-    /**
-     * @dev Sorts the token addresses in ascending order.
-     * @param tokenA The first token address.
-     * @param tokenB The second token address.
-     * @return token0 The token address that is smaller.
-     * @return token1 The token address that is larger.
-     */
+    // returns sorted token addresses, used to handle return values from pairs sorted in this order
     function sortTokens(address tokenA, address tokenB) internal pure returns (address token0, address token1) {
         require(tokenA != tokenB, "UniswapV2Library: IDENTICAL_ADDRESSES");
 
@@ -23,13 +13,7 @@ library UniswapV2Library {
         require(token0 != address(0), "UniswapV2Library: ZERO_ADDRESS");
     }
 
-    /**
-     * @dev Calculates the CREATE2 address for a pair without making any external calls.
-     * @param factory The factory contract address.
-     * @param tokenA The first token address.
-     * @param tokenB The second token address.
-     * @return pair The pair address.
-     */
+    // calculates the CREATE2 address for a pair without making any external calls
     function pairFor(address factory, address tokenA, address tokenB) internal pure returns (address pair) {
         (address token0, address token1) = sortTokens(tokenA, tokenB);
         pair = address(
@@ -48,14 +32,7 @@ library UniswapV2Library {
         );
     }
 
-    /**
-     * @dev Fetches and sorts the reserves for a pair.
-     * @param factory The factory contract address.
-     * @param tokenA The first token address.
-     * @param tokenB The second token address.
-     * @return reserveA The reserve of tokenA.
-     * @return reserveB The reserve of tokenB.
-     */
+    // fetches and sorts the reserves for a pair
     function getReserves(address factory, address tokenA, address tokenB)
         internal
         view
@@ -66,13 +43,17 @@ library UniswapV2Library {
         (reserveA, reserveB) = tokenA == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
     }
 
-    /**
-     * @dev Given some amount of an asset and pair reserves, returns an equivalent amount of the other asset.
-     * @param amountA The amount of the first asset.
-     * @param reserveA The reserve of the first asset.
-     * @param reserveB The reserve of the second asset.
-     * @return amountB The equivalent amount of the second asset.
-     */
+    function getReservesByPair(address pair, address tokenA, address tokenB)
+        internal
+        view
+        returns (uint256 reserveA, uint256 reserveB)
+    {
+        (address token0,) = sortTokens(tokenA, tokenB);
+        (uint256 reserve0, uint256 reserve1,) = IUniswapV2Pair(pair).getReserves();
+        (reserveA, reserveB) = tokenA == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
+    }
+
+    // given some amount of an asset and pair reserves, returns an equivalent amount of the other asset
     function quote(uint256 amountA, uint256 reserveA, uint256 reserveB) internal pure returns (uint256 amountB) {
         require(amountA > 0, "UniswapV2Library: INSUFFICIENT_AMOUNT");
         require(reserveA > 0 && reserveB > 0, "UniswapV2Library: INSUFFICIENT_LIQUIDITY");
@@ -80,13 +61,7 @@ library UniswapV2Library {
         amountB = (amountA * reserveB) / reserveA;
     }
 
-    /**
-     * @dev Given an input amount of an asset and pair reserves, returns the maximum output amount of the other asset.
-     * @param amountIn The input amount of the first asset.
-     * @param reserveIn The reserve of the first asset.
-     * @param reserveOut The reserve of the second asset.
-     * @return amountOut The maximum output amount of the second asset.
-     */
+    // given an input amount of an asset and pair reserves, returns the maximum output amount of the other asset
     function getAmountOut(uint256 amountIn, uint256 reserveIn, uint256 reserveOut)
         internal
         pure
@@ -101,13 +76,7 @@ library UniswapV2Library {
         amountOut = numerator / denominator;
     }
 
-    /**
-     * @dev Given an output amount of an asset and pair reserves, returns a required input amount of the other asset.
-     * @param amountOut The output amount of the first asset.
-     * @param reserveIn The reserve of the first asset.
-     * @param reserveOut The reserve of the second asset.
-     * @return amountIn The required input amount of the second asset.
-     */
+    // given an output amount of an asset and pair reserves, returns a required input amount of the other asset
     function getAmountIn(uint256 amountOut, uint256 reserveIn, uint256 reserveOut)
         internal
         pure
@@ -121,13 +90,7 @@ library UniswapV2Library {
         amountIn = (numerator / denominator) + 1;
     }
 
-    /**
-     * @dev Performs chained getAmountOut calculations on any number of pairs.
-     * @param factory The factory contract address.
-     * @param amountIn The input amount of the first asset.
-     * @param path The path of pairs to swap along.
-     * @return amounts The output amounts of the other assets.
-     */
+    // performs chained getAmountOut calculations on any number of pairs
     function getAmountsOut(address factory, uint256 amountIn, address[] memory path)
         internal
         view
@@ -144,13 +107,23 @@ library UniswapV2Library {
         }
     }
 
-    /**
-     * @dev Performs chained getAmountIn calculations on any number of pairs.
-     * @param factory The factory contract address.
-     * @param amountOut The output amount of the first asset.
-     * @param path The path of pairs to swap along.
-     * @return amounts The required input amounts of the other assets.
-     */
+    function getAmountsOutByPair(address pair, uint256 amountIn, address[] memory path)
+        internal
+        view
+        returns (uint256[] memory amounts)
+    {
+        require(path.length >= 2, "UniswapV2Library: INVALID_PATH");
+
+        amounts = new uint256[](path.length);
+        amounts[0] = amountIn;
+
+        for (uint256 i; i < path.length - 1; i++) {
+            (uint256 reserveIn, uint256 reserveOut) = getReservesByPair(pair, path[i], path[i + 1]);
+            amounts[i + 1] = getAmountOut(amounts[i], reserveIn, reserveOut);
+        }
+    }
+
+    // performs chained getAmountIn calculations on any number of pairs
     function getAmountsIn(address factory, uint256 amountOut, address[] memory path)
         internal
         view

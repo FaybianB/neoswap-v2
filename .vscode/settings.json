@@ -1,5 +1,5 @@
 {
-  //"editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
+  "editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
   "editor.formatOnPaste": false, // required
   "editor.formatOnType": false, // required
   "editor.formatOnSave": true, // optional
@@ -10,5 +10,5 @@
   "eslint.enable": true,
   "eslint.codeActionsOnSave.rules": null,
   "evenBetterToml.taplo.path": "", // set as "true" to run 'prettier' last not first
-  "solidity.formatter": "forge",
+  //"solidity.formatter": "forge",
 }

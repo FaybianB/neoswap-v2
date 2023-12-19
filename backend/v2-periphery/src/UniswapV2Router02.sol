@@ -17,6 +17,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
     /**
      * @dev The factory contract address.
      */
+
     address public immutable override factory;
     /**
      * @dev The WETH contract address.
@@ -727,7 +728,6 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
      */
     function getAmountOut(uint256 amountIn, uint256 reserveIn, uint256 reserveOut)
         public
-        pure
         virtual
         override
         returns (uint256 amountOut)
@@ -760,12 +760,26 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
      */
     function getAmountsOut(uint256 amountIn, address[] memory path)
         public
-        view
         virtual
         override
         returns (uint256[] memory amounts)
     {
         return UniswapV2Library.getAmountsOut(factory, amountIn, path);
+    }
+
+    /**
+     * @dev Returns the amounts of output tokens that can be received for the given input amount along a path of pairs.
+     * @param amountIn The amount of the input token.
+     * @param path The path of pairs to swap along.
+     * @param pair The pair address.
+     * @return amounts The amounts of output tokens that can be received.
+     */
+    function getAmountsOutByPair(uint256 amountIn, address[] memory path, address pair)
+        public
+        virtual
+        returns (uint256[] memory amounts)
+    {
+        return UniswapV2Library.getAmountsOutByPair(pair, amountIn, path);
     }
 
     /**
@@ -776,7 +790,6 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
      */
     function getAmountsIn(uint256 amountOut, address[] memory path)
         public
-        view
         virtual
         override
         returns (uint256[] memory amounts)

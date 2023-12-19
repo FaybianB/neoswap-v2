@@ -10,5 +10,6 @@ export {
   getFailureMessage,
   getSuccessMessage,
   useAmountsOut,
+  useAmountsOutByPair,
   useOnClickOutside,
 } from "./helpers";

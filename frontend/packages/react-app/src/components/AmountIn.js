@@ -32,8 +32,9 @@ const AmountIn = ({
     return (
         <div className={styles.amountContainer}>
             <input
-                placeholder="0.0"
                 type="number"
+                min="0"
+                step="any"
                 value={value}
                 disabled={isSwapping}
                 onChange={(e) =>

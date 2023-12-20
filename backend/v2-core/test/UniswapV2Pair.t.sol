@@ -664,12 +664,12 @@ contract UniswapV2PairTest is Test {
 
         uint112 newReserve0 = 6 * 10 ** 18;
         uint112 newReserve1 = 2 * 10 ** 18;
-        uint256 newPriceToken0 = uint256(UQ112x112.encode(newReserve1).uqdiv(newReserve0)) * timeElapsed;
-        uint256 newPriceToken1 = uint256(UQ112x112.encode(newReserve0).uqdiv(newReserve1)) * timeElapsed;
+        uint256 newPriceToken0 = uint256(UQ112x112.encode(newReserve1).uqdiv(newReserve0));
+        uint256 newPriceToken1 = uint256(UQ112x112.encode(newReserve0).uqdiv(newReserve1));
         (,, blockTimestampLast) = _uniswapV2Pair.getReserves();
 
-        assertEq(_uniswapV2Pair.price0CumulativeLast(), initialPriceToken0 * 10 + newPriceToken0 * 10);
-        assertEq(_uniswapV2Pair.price1CumulativeLast(), initialPriceToken1 * 10 + newPriceToken1 * 10);
+        assertEq(_uniswapV2Pair.price0CumulativeLast(), (initialPriceToken0 * 10) + (newPriceToken0 * 10));
+        assertEq(_uniswapV2Pair.price1CumulativeLast(), (initialPriceToken1 * 10) + (newPriceToken1 * 10));
         assertEq(blockTimestampLast, originalBlockTimestampLast + 20);
     }
 

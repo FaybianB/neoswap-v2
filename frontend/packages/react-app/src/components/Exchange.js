@@ -46,13 +46,13 @@ const Exchange = ({ pools }) => {
         fromTokenBalance ?? parseUnits("0")
     );
 
-    const { state: swapApproveState, send: swapApproveSend } =
+    let { state: swapApproveState, send: swapApproveSend } =
         useContractFunction(fromTokenContract, "approve", {
             transactionName: "onApproveRequested",
             gasLimitBufferPercentage: 10,
         });
 
-    const { state: swapExecuteState, send: swapExecuteSend } =
+    let { state: swapExecuteState, send: swapExecuteSend } =
         useContractFunction(routerContract, "swapExactTokensForTokensByPair", {
             transactionName: "swapExactTokensForTokensByPair",
             gasLimitBufferPercentage: 10,
@@ -76,6 +76,8 @@ const Exchange = ({ pools }) => {
     );
 
     const onApproveRequested = () => {
+        swapExecuteState = "";
+
         swapApproveSend(ROUTER_ADDRESS, ethers.constants.MaxUint256);
     };
 
@@ -125,6 +127,9 @@ const Exchange = ({ pools }) => {
                     setFromValue("0");
 
                     setToToken("");
+
+                    swapExecuteState = "";
+                    swapApproveState = "";
                 }, 5000);
             }
         }

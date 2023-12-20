@@ -12,7 +12,7 @@ contract UniswapV2FactoryTest is Test {
 
     uint256 internal constant TOTAL_SUPPLY = 100 * 10 ** 18;
 
-    event PairCreated(address indexed token0, address indexed token1, address pair, uint);
+    event PairCreated(address indexed token0, address indexed token1, address pair, uint256);
 
     constructor() {
         uniswapV2Factory = new UniswapV2Factory(address(this));

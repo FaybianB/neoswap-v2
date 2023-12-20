@@ -1,11 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { chevronDown } from "../assets";
 import styles from "../styles";
-import {
-    useOnClickOutside,
-    useAmountsOut,
-    useAmountsOutByPair,
-} from "../utils";
+import { useOnClickOutside, useAmountsOutByPair } from "../utils";
 import { formatUnits } from "ethers/lib/utils";
 
 const AmountOut = ({

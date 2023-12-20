@@ -1,5 +1,4 @@
 import { Sepolia } from "@usedapp/core";
-import { getDefaultProvider } from "ethers";
 
 export const ROUTER_ADDRESS = "0xb744A692B346FFDdB6Ee3eD0E668164962B0e920";
 

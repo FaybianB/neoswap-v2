@@ -125,11 +125,6 @@ const Exchange = ({ pools }) => {
                     setResetState(true);
 
                     setFromValue("0");
-
-                    setToToken("");
-
-                    swapExecuteState = "";
-                    swapApproveState = "";
                 }, 5000);
             }
         }
